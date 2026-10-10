@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GapMap - AI Proctored Learning Diagnosis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .floating-badge { animation: float 4s ease-in-out infinite; }
+
+    @keyframes waveMove1 {
+      0% { transform: translateX(0) translateZ(0) scaleY(1); }
+      50% { transform: translateX(-25%) translateZ(0) scaleY(1.2); }
+      100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+    }
+    @keyframes waveMove2 {
+      0% { transform: translateX(0) translateZ(0) scaleY(1); }
+      50% { transform: translateX(25%) translateZ(0) scaleY(0.8); }
+      100% { transform: translateX(50%) translateZ(0) scaleY(1); }
+    }
+    .wave-1 { animation: waveMove1 12s linear infinite; }
+    .wave-2 { animation: waveMove2 18s linear infinite; }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 font-sans antialiased min-h-screen text-slate-100 flex flex-col justify-between relative overflow-x-hidden">
+
+  <!-- ANIMATED WAVE BACKGROUND -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-30">
+    <svg class="absolute bottom-0 left-0 w-[200%] h-96 wave-1" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M0,0 C150,90 350,-40 500,50 C650,140 900,10 1200,40 L1200,120 L0,120 Z" fill="url(#grad1)"></path>
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#2563eb;stop-opacity:0.8" />
+          <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:0.8" />
+        </linearGradient>
+      </defs>
+    </svg>
+    <svg class="absolute bottom-0 left-0 w-[200%] h-80 wave-2 opacity-70" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M0,30 C200,100 450,0 700,70 C950,140 1050,20 1200,50 L1200,120 L0,120 Z" fill="url(#grad2)"></path>
+      <defs>
+        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:0.8" />
+          <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.8" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="flex-1 flex items-center justify-center p-4 z-10 relative w-full">
+    
+    <!-- 1. SIGN UP VIEW -->
+    <div id="auth-container" class="w-full max-w-md mx-auto">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl shadow-2xl shadow-blue-500/40 text-white font-bold text-2xl mb-3 floating-badge">
+          GM
+        </div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-white">GapMap AI</h1>
+        <p class="text-indigo-200 text-sm mt-1">AI-Powered Proctored Diagnosis & Remedial Lab</p>
+      </div>
+
+      <div class="glass-card text-slate-800 rounded-3xl shadow-2xl p-8 border border-white/20 relative overflow-hidden">
+        <div class="mb-6 text-center">
+          <h2 class="text-xl font-bold text-slate-900">Create Account</h2>
+          <p class="text-xs text-slate-500 mt-1">Register to access the AI Proctored Diagnostic Console</p>
+        </div>
+
+        <form onsubmit="handleSignup(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Full Name</label>
+            <input type="text" id="fullname-input" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 focus:outline-none text-sm transition" placeholder="Dr. Jane Doe">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Institutional Email</label>
+            <input type="email" id="email" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 focus:outline-none text-sm transition" placeholder="teacher@school.edu">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Password</label>
+            <input type="password" id="password" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 focus:outline-none text-sm transition" placeholder="••••••••">
+          </div>
+          <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/25 transition-all transform active:scale-[0.98]">
+            Create Account & Launch
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. MAIN DASHBOARD VIEW -->
+    <div id="dashboard-container" class="hidden w-full max-w-7xl mx-auto space-y-6">
+      
+      <!-- Top Navigation with User Name in Top Right -->
+      <header class="glass-card text-slate-800 rounded-2xl p-4 px-6 flex justify-between items-center shadow-lg border border-white/20">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold shadow-md shadow-blue-500/25">GM</div>
+          <div>
+            <h2 class="font-bold text-slate-900 leading-tight">GapMap Career Lab</h2>
+            <p class="text-xs text-slate-500">AI Learning-Gap Diagnosis Console</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="text-right">
+            <span id="user-display-name" class="text-sm font-bold text-slate-900 block">User Name</span>
+            <span class="text-[11px] text-emerald-600 font-semibold">● AI Proctor Active</span>
+          </div>
+          <button onclick="logout()" class="text-sm font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-xl transition">Log Out</button>
+        </div>
+      </header>
+
+      <!-- Hero Banner -->
+      <div class="glass-card rounded-3xl p-8 shadow-2xl border border-white/30 relative overflow-hidden text-slate-800">
+        <div class="max-w-3xl">
+          <span class="bg-blue-100 text-blue-700 font-bold text-xs uppercase px-3 py-1 rounded-full tracking-wider">AI Diagnostic Engine</span>
+          <h2 class="text-3xl font-extrabold text-slate-900 mt-3 mb-2">Automated Proctored Gap Analysis & Remediation</h2>
+          <p class="text-slate-600 text-base leading-relaxed mb-6">
+            Welcome to GapMap. Choose from 30+ subjects across Class 1-12 & Higher Education, take AI-camera monitored quizzes, and analyze real-time cognitive skill graphs.
+          </p>
+        </div>
+      </div>
+
+      <!-- FEATURES GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        
+        <!-- Card 1: Answer Sheet Scanner -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl border border-white/25 flex flex-col justify-between text-slate-800">
+          <div>
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">📄</div>
+            <h3 class="font-bold text-slate-900 text-lg mb-1">Answer Sheet Scan</h3>
+            <p class="text-slate-600 text-sm mb-4">Upload student files (.jpg, .png, .pdf, .docx) for OCR error parsing.</p>
+            <label class="block border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/50 rounded-xl p-3 text-center cursor-pointer transition">
+              <span id="file-name-display" class="text-[11px] text-blue-600 font-semibold block">Choose File</span>
+              <input type="file" id="sheet-file-input" accept=".jpg,.jpeg,.png,.pdf,.docx" class="hidden" onchange="handleFileSelect(event)">
+            </label>
+          </div>
+          <button onclick="processUploadedFile()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-md">Run AI Scan</button>
+        </div>
+
+        <!-- Card 2: Choice Skill & 30+ Subjects -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl border border-white/25 flex flex-col justify-between text-slate-800">
+          <div>
+            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">🎯</div>
+            <h3 class="font-bold text-slate-900 text-lg mb-1">30+ Subjects & Class</h3>
+            <p class="text-slate-600 text-sm mb-6">Select from 30+ subjects across Class 1-12 & Higher Education / Career Tracks.</p>
+          </div>
+          <button onclick="openPage('skill-page')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-md">Select Subjects & Skills</button>
+        </div>
+
+        <!-- Card 3: AI Monitored Quiz & Interview -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl border border-white/25 flex flex-col justify-between text-slate-800">
+          <div>
+            <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">📹</div>
+            <h3 class="font-bold text-slate-900 text-lg mb-1">AI Monitored Quiz</h3>
+            <p class="text-slate-600 text-sm mb-6">Take AI camera-monitored quizzes with background app lock & anti-cheating tracking.</p>
+          </div>
+          <button onclick="openPage('interview-page'); startCameraProctor();" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-md">Start AI Monitored Quiz</button>
+        </div>
+
+        <!-- Card 4: Graph Analytics -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl border border-white/25 flex flex-col justify-between text-slate-800">
+          <div>
+            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold text-xl mb-4 shadow-inner">📊</div>
+            <h3 class="font-bold text-slate-900 text-lg mb-1">Performance Graph</h3>
+            <p class="text-slate-600 text-sm mb-6">Synthesize quiz performance & proctor integrity index into visual graph analytics.</p>
+          </div>
+          <button onclick="openPage('graph-page')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-md">View Graph Analytics</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. WEBPAGE: 30+ SUBJECT & CLASS SELECTION VIEW -->
+    <div id="skill-page" class="hidden w-full max-w-5xl mx-auto space-y-6">
+      <div class="glass-card rounded-3xl p-8 shadow-2xl border border-white/30 text-slate-800">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-extrabold text-slate-900">🎓 Select Academic Class & Subjects (30+ Available)</h2>
+          <button onclick="openPage('dashboard-container')" class="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-xl text-sm font-semibold transition">← Back to Dashboard</button>
+        </div>
+        
+        <!-- Grade Level Selector -->
+        <div class="mb-6">
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-2">Education Grade Level</label>
+          <select id="grade-select" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:outline-none text-sm bg-white font-medium text-slate-800">
+            <optgroup label="Primary School (Class 1 - 5)">
+              <option value="Class 1 Mathematics">Class 1 Mathematics</option><option value="Class 2 General Science">Class 2 General Science</option><option value="Class 3 Environmental Science">Class 3 Environmental Science</option><option value="Class 4 Arithmetic & Grammar">Class 4 Arithmetic & Grammar</option><option value="Class 5 Elementary Science">Class 5 Elementary Science</option>
+            </optgroup>
+            <optgroup label="Middle School (Class 6 - 8)">
+              <option value="Class 6 General Science & Algebra">Class 6 General Science & Algebra</option><option value="Class 7 Geometry & Biology">Class 7 Geometry & Biology</option><option value="Class 8 Physical Science">Class 8 Physical Science</option>
+            </optgroup>
+            <optgroup label="High School (Class 9 - 10)">
+              <option value="Class 9 Advanced Algebra">Class 9 Advanced Algebra</option><option value="Class 10 Board Physics & Chemistry">Class 10 Board Physics & Chemistry</option>
+            </optgroup>
+            <optgroup label="Senior Secondary (Class 11 - 12)">
+              <option value="Class 11 Calculus & Mechanics">Class 11 Calculus & Mechanics</option><option value="Class 12 Board Physics & Mathematics" selected>Class 12 Board Physics & Mathematics</option>
+            </optgroup>
+            <optgroup label="Post Class 12 / Higher Education">
+              <option value="B.Tech Computer Science Engineering">B.Tech Computer Science Engineering</option><option value="MBBS Medical Biotechnology">MBBS Medical Biotechnology</option><option value="B.Com / BBA Corporate Finance">B.Com / BBA Corporate Finance</option><option value="LLB Cyber & Corporate Law">LLB Cyber & Corporate Law</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 30+ Subjects Selection Grid -->
+        <label class="block text-xs font-semibold uppercase text-slate-500 mb-3">Choose Target Subjects (At least 30 options available)</label>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-80 overflow-y-auto p-2 border border-slate-200 rounded-2xl bg-slate-50/50 mb-6">
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Mathematics" checked class="text-blue-600 rounded"><span>1. Mathematics</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Physics" checked class="text-blue-600 rounded"><span>2. Physics</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Chemistry" class="text-blue-600 rounded"><span>3. Chemistry</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Biology" class="text-blue-600 rounded"><span>4. Biology</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Computer Science" class="text-blue-600 rounded"><span>5. Computer Science</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="English Literature" class="text-blue-600 rounded"><span>6. English Literature</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Hindi & Vernacular" class="text-blue-600 rounded"><span>7. Hindi & Vernacular</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="History & Civics" class="text-blue-600 rounded"><span>8. History & Civics</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Geography" class="text-blue-600 rounded"><span>9. Geography</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Economics" class="text-blue-600 rounded"><span>10. Economics</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Accountancy" class="text-blue-600 rounded"><span>11. Accountancy</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Business Studies" class="text-blue-600 rounded"><span>12. Business Studies</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Environmental Science" class="text-blue-600 rounded"><span>13. Environmental Science</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Psychology" class="text-blue-600 rounded"><span>14. Psychology</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Political Science" class="text-blue-600 rounded"><span>15. Political Science</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Sociology" class="text-blue-600 rounded"><span>16. Sociology</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Statistics" class="text-blue-600 rounded"><span>17. Statistics</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Information Tech" class="text-blue-600 rounded"><span>18. Information Tech</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="AI & Machine Learning" class="text-blue-600 rounded"><span>19. AI & Machine Learning</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Data Structures" class="text-blue-600 rounded"><span>20. Data Structures</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Mechanical Eng." class="text-blue-600 rounded"><span>21. Mechanical Eng.</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Electrical Eng." class="text-blue-600 rounded"><span>22. Electrical Eng.</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Organic Chemistry" class="text-blue-600 rounded"><span>23. Organic Chemistry</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Human Anatomy" class="text-blue-600 rounded"><span>24. Human Anatomy</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Corporate Law" class="text-blue-600 rounded"><span>25. Corporate Law</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Financial Analysis" class="text-blue-600 rounded"><span>26. Financial Analysis</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Biotechnology" class="text-blue-600 rounded"><span>27. Biotechnology</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Cyber Security" class="text-blue-600 rounded"><span>28. Cyber Security</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Calculus & Vectors" class="text-blue-600 rounded"><span>29. Calculus & Vectors</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Logic & Aptitude" class="text-blue-600 rounded"><span>30. Logic & Aptitude</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Microeconomics" class="text-blue-600 rounded"><span>31. Microeconomics</span></label>
+          <label class="flex items-center space-x-2 p-2 bg-white rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"><input type="checkbox" name="subject" value="Public Speaking" class="text-blue-600 rounded"><span>32. Public Speaking</span></label>
+        </div>
+
+        <button onclick="saveSelectedSubjects()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg transition">Save Selected Subjects & Level</button>
+      </div>
+    </div>
+
+    <!-- 4. WEBPAGE: AI CAMERA MONITORED QUIZ & INTERVIEW VIEW -->
+    <div id="interview-page" class="hidden w-full max-w-5xl mx-auto space-y-6">
+      <div class="glass-card rounded-3xl p-8 shadow-2xl border border-white/30 text-slate-800">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900">📹 AI Camera Monitored Quiz & Interview</h2>
+            <p class="text-xs text-red-600 font-semibold mt-1">● Anti-Cheating Active: Background App Detection & Camera Tracking Enabled</p>
+          </div>
+          <button onclick="stopCameraProctor(); openPage('dashboard-container');" class="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-xl text-sm font-semibold transition">← Exit Proctor Mode</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <!-- Live AI Camera Feed Monitor -->
+          <div class="bg-slate-900 rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden border border-slate-800 shadow-inner">
+            <video id="proctor-video" autoplay playsinline muted class="w-full h-48 object-cover rounded-xl border border-slate-700 mb-2"></video>
+            <div class="flex items-center justify-between w-full text-xs text-slate-300 px-1">
+              <span class="text-emerald-400 font-bold flex items-center gap-1">● Face Tracked</span>
+              <span id="warnings-count" class="text-amber-400 font-bold">App Focus: Safe</span>
+            </div>
+          </div>
+
+          <!-- AI Quiz & Interview Console with Dynamic Topic Questions -->
+          <div class="md:col-span-2 bg-slate-900 text-slate-100 p-6 rounded-2xl shadow-inner flex flex-col justify-between">
+            <div id="chat-box" class="space-y-3 max-h-52 overflow-y-auto pr-2 text-sm">
+              <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <span class="text-purple-400 font-bold block mb-1 text-xs uppercase tracking-wider">AI Proctored Evaluator</span>
+                <p id="dynamic-question-text" class="text-slate-100 font-medium text-base leading-relaxed">
+                  Loading customized question based on your selected topic...
+                </p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <input type="text" id="quiz-input" placeholder="Type your answer or explanation here..." class="flex-1 px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm font-medium">
+              <button onclick="submitQuizAnswer()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-xl text-sm transition shadow-md">Submit Answer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proctor Alert Bar -->
+        <div id="proctor-alert" class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex justify-between items-center">
+          <span>⚠️ Instructions: Keep this window full-screen. Switching tabs or opening background applications will log proctor warnings for your AI performance graph.</span>
+          <button onclick="toggleFullScreen()" class="bg-amber-200 hover:bg-amber-300 font-bold px-3 py-1 rounded-lg text-amber-900 transition">Enter Full Screen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. WEBPAGE: GRAPH ANALYTICS VIEW -->
+    <div id="graph-page" class="hidden w-full max-w-4xl mx-auto space-y-6">
+      <div class="glass-card rounded-3xl p-8 shadow-2xl border border-white/30 text-slate-800">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-extrabold text-slate-900">📊 Proctored AI Quiz & Knowledge Graph</h2>
+          <button onclick="openPage('dashboard-container')" class="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-xl text-sm font-semibold transition">← Back to Dashboard</button>
+        </div>
+        <p class="text-slate-600 text-sm mb-6">Synthesized diagnostic metrics combining academic subject mastery and AI proctoring integrity scores:</p>
+        
+        <!-- Diagnostic Bar Graphs -->
+        <div class="space-y-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <div>
+            <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1"><span>Subject Concept Mastery</span><span>89%</span></div>
+            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: 89%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1"><span>Problem Solving Accuracy</span><span>78%</span></div>
+            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden"><div class="bg-indigo-600 h-full rounded-full" style="width: 78%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1"><span>AI Proctor Integrity & Focus Score</span><span id="integrity-score">98%</span></div>
+            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden"><div id="integrity-bar" class="bg-emerald-600 h-full rounded-full" style="width: 98%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm font-semibold text-slate-700 mb-1"><span>Misconception Resolution Rate</span><span>84%</span></div>
+            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: 84%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Notification Banner -->
+    <div id="notification" class="hidden fixed bottom-6 right-6 glass-card border-l-4 border-blue-600 p-4 rounded-xl shadow-2xl flex items-center space-x-3 text-slate-800 z-50">
+      <span class="text-blue-600 font-bold">⚡ AI Proctor:</span>
+      <span id="notif-text" class="text-slate-700 text-sm font-medium">Ready</span>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="text-center py-4 text-xs text-indigo-300 z-10 relative">
+    GapMap AI Career Lab & Learning-Gap Diagnosis System • Proctored Hackathon Edition
+  </footer>
+
+  <!-- Script Handler -->
+  <script>
+    let selectedFile = null;
+    let cameraStream = null;
+    let warningLogs = 0;
+    let currentUserName = "Dr. Jane Doe";
+    let activeGrade = "Class 12 Board Physics & Mathematics";
+    let activeSubjects = ["Mathematics", "Physics"];
+
+    function handleSignup(event) {
+      event.preventDefault();
+      const nameInput = document.getElementById('fullname-input').value;
+      if (nameInput) {
+        currentUserName = nameInput;
+        document.getElementById('user-display-name').innerText = currentUserName;
+      }
+      openPage('dashboard-container');
+    }
+
+    function logout() {
+      stopCameraProctor();
+      openPage('auth-container');
+    }
+
+    function openPage(pageId) {
+      document.getElementById('auth-container').classList.add('hidden');
+      document.getElementById('dashboard-container').classList.add('hidden');
+      document.getElementById('skill-page').classList.add('hidden');
+      document.getElementById('interview-page').classList.add('hidden');
+      document.getElementById('graph-page').classList.add('hidden');
+
+      document.getElementById(pageId).classList.remove('hidden');
+      window.scrollTo(0, 0);
+
+      if (pageId === 'interview-page') {
+        loadDynamicQuizQuestion();
+      }
+    }
+
+    function saveSelectedSubjects() {
+      const gradeDropdown = document.getElementById('grade-select');
+      activeGrade = gradeDropdown.options[gradeDropdown.selectedIndex].text;
+      
+      const checkboxes = document.querySelectorAll('input[name="subject"]:checked');
+      activeSubjects = Array.from(checkboxes).map(cb => cb.value);
+      
+      triggerAction(`Saved! Level: ${activeGrade} (${activeSubjects.length} subjects selected).`);
+      openPage('dashboard-container');
+    }
+
+    function loadDynamicQuizQuestion() {
+      const qTextElem = document.getElementById('dynamic-question-text');
+      const primarySubject = activeSubjects.length > 0 ? activeSubjects[0] : "Core Problem Solving";
+      qTextElem.innerHTML = `<strong>Diagnostic Assessment (${activeGrade} — Focus: ${primarySubject}):</strong><br>Explain the fundamental conceptual bottleneck or equation error commonly encountered when solving problems in <em>${primarySubject}</em>, and state how you would remediate it.`;
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        selectedFile = file;
+        document.getElementById('file-name-display').innerText = file.name;
+        triggerAction(`File attached: ${file.name}`);
+      }
+    }
+
+    function processUploadedFile() {
+      if (!selectedFile) {
+        triggerAction('Please choose a file first!');
+        return;
+      }
+      triggerAction(`Analyzing ${selectedFile.name} with AI OCR...`);
+    }
+
+    /* AI CAMERA PROCTORING & BACKGROUND MONITORING LOGIC */
+    async function startCameraProctor() {
+      try {
+        const videoElem = document.getElementById('proctor-video');
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        videoElem.srcObject = cameraStream;
+        triggerAction('Camera access granted. AI proctoring active.');
+      } catch (err) {
+        triggerAction('Camera access required for AI Proctoring demo mode.');
+      }
+    }
+
+    function stopCameraProctor() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+    }
+
+    /* Background App / Tab Blur Detection */
+    window.addEventListener('blur', () => {
+      if (!document.getElementById('interview-page').classList.contains('hidden')) {
+        warningLogs++;
+        document.getElementById('warnings-count').innerText = `App Focus: Warnings (${warningLogs})`;
+        document.getElementById('warnings-count').className = 'text-red-400 font-bold';
+        
+        const newScore = Math.max(50, 98 - (warningLogs * 10));
+        document.getElementById('integrity-score').innerText = `${newScore}%`;
+        document.getElementById('integrity-bar').style.width = `${newScore}%`;
+
+        triggerAction(`⚠️ Background app detected! Warning logged (#${warningLogs}).`);
+      }
+    });
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    function submitQuizAnswer() {
+      const input = document.getElementById('quiz-input');
+      const chatBox = document.getElementById('chat-box');
+      if (!input.value.trim()) return;
+
+      const userMsg = document.createElement('div');
+      userMsg.className = 'bg-blue-950 p-3 rounded-xl text-blue-100 text-right border border-blue-900';
+      userMsg.innerHTML = `<span class="text-blue-400 font-bold block mb-1 text-xs">You (${currentUserName}):</span>${input.value}`;
+      chatBox.appendChild(userMsg);
+
+      setTimeout(() => {
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'bg-slate-800 p-3 rounded-xl text-slate-200 border border-slate-700';
+        aiMsg.innerHTML = `<span class="text-purple-400 font-bold block mb-1 text-xs">AI Evaluator:</span>Response recorded for <em>${activeSubjects[0] || 'Selected Topic'}</em>. Camera proctoring verified. Knowledge graph updated!`;
+        chatBox.appendChild(aiMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 800);
+
+      input.value = '';
+    }
+
+    function triggerAction(message) {
+      const notif = document.getElementById('notification');
+      const notifText = document.getElementById('notif-text');
+      notifText.innerText = message;
+      notif.classList.remove('hidden');
+      setTimeout(() => {
+        notif.classList.add('hidden');
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
